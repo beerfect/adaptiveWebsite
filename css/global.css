@@ -1,7 +1,4 @@
-/* GLOBAL (START) */
-
 body{
-    background-color: rgba(255, 0, 0, 0.3);
     transition: .5s;
     font-family: arial;
 }
@@ -9,14 +6,16 @@ body{
     max-width: 100%;
     display: block;
 }
+
 .wrapper {
     background-color: #fff;
     max-width: 1000px;
     min-width: 371px;
-    min-height: 786px;
+    min-height: 1500px;
     padding: 10px;
     margin: 0 auto;
 }
+
 .wrapper__element{
     border: 2px solid #777;
     box-sizing: border-box;
@@ -25,16 +24,14 @@ body{
     min-height: 70px;
 }
 
+/* RESPONSIVE */
+
+    body{background-color: rgba(255, 0, 0, 0.3);}
+
 @media screen and (min-width:480px) and (max-width:823px) {
-    body {
-        background-color: rgba(0, 255, 0, 0.3);
-    }
+    body {background-color: rgba(0, 255, 0, 0.3);}
 }
 
-@media screen and (max-width:479px) {
-    body {
-        background-color: rgba(0, 0, 255, 0.3);
-    }
+@media screen and (max-width:480px) {
+    body {background-color: rgba(0, 0, 255, 0.3);}
 }
-
-/* GLOBAL (END) */
