@@ -10,18 +10,14 @@ body{
 .wrapper {
     background-color: #fff;
     max-width: 1000px;
-    min-width: 371px;
+    min-width: 300px;
     min-height: 1500px;
-    padding: 10px;
     margin: 0 auto;
 }
 
 .wrapper__element{
-    border: 2px solid #777;
+    border: 1px solid #777;
     box-sizing: border-box;
-    border-radius: 10px;
-    margin: 10px 0;
-    min-height: 70px;
 }
 
 /* RESPONSIVE */

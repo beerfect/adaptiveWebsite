@@ -11,6 +11,9 @@ browser-sync start --server --files "*.html, css/*.css, js/*.js"
     <link rel="stylesheet" type="text/css" href="css/global.css">
     <link rel="stylesheet" type="text/css" href="css/header.css">
     <link rel="stylesheet" type="text/css" href="css/menu.css">
+    <link rel="stylesheet" type="text/css" href="css/carousel.css">
+    <link rel="stylesheet" type="text/css" href="css/content.css">
+    <link rel="stylesheet" type="text/css" href="css/footer.css">
     <script src="js/script.js" async></script>
 
 </head>
@@ -18,18 +21,33 @@ browser-sync start --server --files "*.html, css/*.css, js/*.js"
 <body>
     <div class="wrapper">
 
+        <nav class="menu wrapper__element">
+            <button class="menu__button">
+                <div class="button__line"></div>
+            </button>
+            <div class="menu__logo">
+                <img class="flexImage" src="img/logo.png" alt="logo image" height="33" width="40">
+            </div>
+            <ul class="menu__ul">
+                <li class="menu__li"><a class="menu__a" href="#">link 1</a></li>
+                <li class="menu__li"><a class="menu__a" href="#">link 2</a></li>
+                <li class="menu__li"><a class="menu__a" href="#">link 3</a></li>
+                <li class="menu__li"><a class="menu__a" href="#">link 4</a></li>
+            </ul>
+        </nav>
+
         <div class="header wrapper__element">
             <div class="header__content">
                 <div class="header__h">Header</div>
                 <div class="header__p">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, corporis?</div>
-            </div>            
+            </div>
             <img class="flexImage" src="https://via.placeholder.com/1000x200" alt="header image">
         </div>
-            
-        <div class="menu wrapper__element">menu</div>
-        <div class="carousel wrapper__element">carousel</div>
+
+        <!-- <div class="carousel wrapper__element">carousel</div>
         <div class="content wrapper__element">content</div>
-        <div class="footer wrapper__element">footer</div>
+        <div class="footer wrapper__element">footer</div> -->
+
     </div>
 </body>
 

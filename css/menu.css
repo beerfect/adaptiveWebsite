@@ -1,5 +1,96 @@
-.menu{
+.menu {
     position: sticky;
     top: 0;
-    background-color: coral;
+    background-color: #ddd;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+    margin: 0;
+}
+
+.menu__ul {
+    padding-left: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.menu__li {
+    margin-right: 20px;
+    list-style-type: none;
+}
+
+.menu__a {
+    text-decoration: none;
+    text-transform: uppercase;
+    color: #000;
+}
+
+.menu__a:hover {text-decoration: underline;}
+
+
+/* menu button */
+
+.menu__button {
+    width: 25px;
+    height: 25px;
+    margin: auto 5px;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button__line{
+    width: 15px;
+    height: 2px;
+    background-color: #000;
+    position: relative;
+}
+
+.button__line::before,
+.button__line::after{
+    position: absolute;
+    content: "";
+    width: 15px;
+    height: 2px;
+    background-color: #000;
+}
+.button__line::before {
+    top: 5px;
+    right: 0;
+}
+
+.button__line::after{
+    bottom: 5px;
+    right: 0;
+}
+
+/* RESPONSIVE */
+    .menu__a {font-size: 1.5em;}
+    .menu__button {display: none;}
+    .menu__ul{display: flex;}
+
+@media screen and (max-width:480px) {
+
+    .menu__a {font-size: 1em;}
+    .menu__button {display: block;}
+    .menu__li{position: relative;}
+    .menu__ul {display: none;position: absolute;top: calc(100% + 1px);}
+
+    .menu-visible{
+        display: block;
+        background-color: rgba(102, 102, 102, 0.5);
+        height: 1000px;
+    }
+
+    .menu__li{
+        width: 60px;
+        background-color: #fff;
+    }
+
+    .menu__li:last-child{
+        height: 1000px;
+    }
 }
