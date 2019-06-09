@@ -7,21 +7,24 @@ browser-sync start --server --files "*.html, css/*.css, js/*.js"
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>responsive website</title>
+    <title>Responsive website</title>
+
     <link rel="stylesheet" type="text/css" href="css/global.css">
     <link rel="stylesheet" type="text/css" href="css/header.css">
     <link rel="stylesheet" type="text/css" href="css/menu.css">
-    <link rel="stylesheet" type="text/css" href="css/carousel.css">
+    <link rel="stylesheet" type="text/css" href="css/slider.css">
     <link rel="stylesheet" type="text/css" href="css/content.css">
     <link rel="stylesheet" type="text/css" href="css/footer.css">
-    <script src="js/script.js" async></script>
+
+    <script src="js/menu.js" async></script>
+    <script src="js/slider.js" async></script>
 
 </head>
 
 <body>
     <div class="wrapper">
 
-        <nav class="menu wrapper__element">
+        <nav class="menu">
             <button class="menu__button">
                 <div class="button__line"></div>
             </button>
@@ -36,7 +39,7 @@ browser-sync start --server --files "*.html, css/*.css, js/*.js"
             </ul>
         </nav>
 
-        <div class="header wrapper__element">
+        <div class="header">
             <div class="header__content">
                 <div class="header__h">Header</div>
                 <div class="header__p">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit, corporis?</div>
@@ -44,9 +47,25 @@ browser-sync start --server --files "*.html, css/*.css, js/*.js"
             <img class="flexImage" src="https://via.placeholder.com/1000x200" alt="header image">
         </div>
 
-        <!-- <div class="carousel wrapper__element">carousel</div>
-        <div class="content wrapper__element">content</div>
-        <div class="footer wrapper__element">footer</div> -->
+        <div class="slider">
+            <div class="slider__wrapper">
+                <div class="slider__item">
+                    <div class="slide slide__01"></div>
+                </div>
+                <div class="slider__item">
+                    <div class="slide slide__02"></div>
+                </div>
+                <div class="slider__item">
+                    <div class="slide slide__03"></div>
+                </div>
+
+            </div>
+            <a class="slider__control slider__control_left" href="#" role="button"></a>
+            <a class="slider__control slider__control_right" href="#" role="button"></a>
+        </div>
+
+        <!-- <div class="content">content</div> -->
+        <!-- <div class="footer">footer</div> -->
 
     </div>
 </body>
