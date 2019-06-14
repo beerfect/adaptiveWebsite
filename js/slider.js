@@ -1,258 +1,184 @@
 'use strict';
 
-var multiItemSlider = (function () {
+var slider = (function (config) {
 
-    function _isElementVisible(element) {
-        var rect = element.getBoundingClientRect(),
-            vWidth = window.innerWidth || doc.documentElement.clientWidth,
-            vHeight = window.innerHeight || doc.documentElement.clientHeight,
-            elemFromPoint = function (x, y) {
-                return document.elementFromPoint(x, y)
-            };
-        if (rect.right < 0 || rect.bottom < 0 ||
-            rect.left > vWidth || rect.top > vHeight)
-            return false;
-        return (
-            element.contains(elemFromPoint(rect.left, rect.top)) ||
-            element.contains(elemFromPoint(rect.right, rect.top)) ||
-            element.contains(elemFromPoint(rect.right, rect.bottom)) ||
-            element.contains(elemFromPoint(rect.left, rect.bottom))
-        );
+    const ClassName = {
+        INDICATOR_ACTIVE: 'slider__indicator_active',
+        ITEM: 'slider__item',
+        ITEM_LEFT: 'slider__item_left',
+        ITEM_RIGHT: 'slider__item_right',
+        ITEM_PREV: 'slider__item_prev',
+        ITEM_NEXT: 'slider__item_next',
+        ITEM_ACTIVE: 'slider__item_active'
     }
 
-    return function (selector, config) {
-        var
-            _mainElement = document.querySelector(selector), // основный элемент блока
-            _sliderWrapper = _mainElement.querySelector('.slider__wrapper'), // обертка для .slider-item
-            _sliderItems = _mainElement.querySelectorAll('.slider__item'), // элементы (.slider-item)
-            _sliderControls = _mainElement.querySelectorAll('.slider__control'), // элементы управления
-            _sliderControlLeft = _mainElement.querySelector('.slider__control_left'), // кнопка "LEFT"
-            _sliderControlRight = _mainElement.querySelector('.slider__control_right'), // кнопка "RIGHT"
-            _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width), // ширина обёртки
-            _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width), // ширина одного элемента    
-            _positionLeftItem = 0, // позиция левого активного элемента
-            _transform = 0, // значение транфсофрмации .slider_wrapper
-            _step = _itemWidth / _wrapperWidth * 100, // величина шага (для трансформации)
-            _items = [], // массив элементов
-            _interval = 0,
-            _html = _mainElement.innerHTML,
-            _states = [{
-                    active: false,
-                    minWidth: 0,
-                    count: 1
-                },
-                {
-                    active: false,
-                    minWidth: 980,
-                    count: 2
+    var
+        _isSliding = false, // индикация процесса смены слайда
+        _interval = 0, // числовой идентификатор таймера
+        _transitionDuration = 700, // длительность перехода
+        _slider = {}, // DOM элемент слайдера
+        _items = {}, // .slider-item (массив слайдов) 
+        _sliderIndicators = {}, // [data-slide-to] (индикаторы)
+        _config = {
+            selector: '', // селектор слайдера
+            isCycling: true, // автоматическая смена слайдов
+            direction: 'next', // направление смены слайдов
+            interval: 5000, // интервал между автоматической сменой слайдов
+            pause: true // устанавливать ли паузу при поднесении курсора к слайдеру
+        };
+
+    var
+        // функция для получения порядкового индекса элемента
+        _getItemIndex = function (_currentItem) {
+            var result;
+            _items.forEach(function (item, index) {
+                if (item === _currentItem) {
+                    result = index;
                 }
-            ],
-            _config = {
-                isCycling: false, // автоматическая смена слайдов
-                direction: 'right', // направление смены слайдов
-                interval: 5000, // интервал между автоматической сменой слайдов
-                pause: true // устанавливать ли паузу при поднесении курсора к слайдеру
+            });
+            return result;
+        },
+        // функция для подсветки активного индикатора
+        _setActiveIndicator = function (_activeIndex, _targetIndex) {
+            if (_sliderIndicators.length !== _items.length) {
+                return;
+            }
+            _sliderIndicators[_activeIndex].classList.remove(ClassName.INDICATOR_ACTIVE);
+            _sliderIndicators[_targetIndex].classList.add(ClassName.INDICATOR_ACTIVE);
+        },
+
+        // функция для смены слайда
+        _slide = function (direction, activeItemIndex, targetItemIndex) {
+            var
+                directionalClassName = ClassName.ITEM_RIGHT,
+                orderClassName = ClassName.ITEM_PREV,
+                activeItem = _items[activeItemIndex], // текущий элемент
+                targetItem = _items[targetItemIndex]; // следующий элемент
+
+            var _slideEndTransition = function () {
+                activeItem.classList.remove(ClassName.ITEM_ACTIVE);
+                activeItem.classList.remove(directionalClassName);
+                targetItem.classList.remove(orderClassName);
+                targetItem.classList.remove(directionalClassName);
+                targetItem.classList.add(ClassName.ITEM_ACTIVE);
+                window.setTimeout(function () {
+                    if (_config.isCycling) {
+                        clearInterval(_interval);
+                        _cycle();
+                    }
+                    _isSliding = false;
+                    activeItem.removeEventListener('transitionend', _slideEndTransition);
+                }, _transitionDuration);
             };
 
-        for (var key in config) {
-            if (key in _config) {
-                _config[key] = config[key];
+            if (_isSliding) {
+                return; // завершаем выполнение функции если идёт процесс смены слайда
             }
-        }
+            _isSliding = true; // устанавливаем переменной значение true (идёт процесс смены слайда)
 
-        // наполнение массива _items
-        _sliderItems.forEach(function (item, index) {
-            _items.push({
-                item: item,
-                position: index,
-                transform: 0
-            });
-        });
+            if (direction === "next") { // устанавливаем значение классов в зависимости от направления
+                directionalClassName = ClassName.ITEM_LEFT;
+                orderClassName = ClassName.ITEM_NEXT;
+            }
 
-        var _setActive = function () {
-            var _index = 0;
-            var width = parseFloat(document.body.clientWidth);
-            _states.forEach(function (item, index, arr) {
-                _states[index].active = false;
-                if (width >= _states[index].minWidth)
-                    _index = index;
-            });
-            _states[_index].active = true;
-        }
+            targetItem.classList.add(orderClassName); // устанавливаем положение элемента перед трансформацией
+            _setActiveIndicator(activeItemIndex, targetItemIndex); // устанавливаем активный индикатор
 
-        var _getActive = function () {
-            var _index;
-            _states.forEach(function (item, index, arr) {
-                if (_states[index].active) {
-                    _index = index;
+            window.setTimeout(function () { // запускаем трансформацию
+                targetItem.classList.add(directionalClassName);
+                activeItem.classList.add(directionalClassName);
+                activeItem.addEventListener('transitionend', _slideEndTransition);
+            }, 0);
+
+        },
+        // функция для перехода к предыдущему или следующему слайду
+        _slideTo = function (direction) {
+            var
+                activeItem = _slider.querySelector('.' + ClassName.ITEM_ACTIVE), // текущий элемент
+                activeItemIndex = _getItemIndex(activeItem), // индекс текущего элемента 
+                lastItemIndex = _items.length - 1, // индекс последнего элемента
+                targetItemIndex = activeItemIndex === 0 ? lastItemIndex : activeItemIndex - 1;
+            if (direction === "next") { // определяем индекс следующего слайда в зависимости от направления
+                targetItemIndex = activeItemIndex == lastItemIndex ? 0 : activeItemIndex + 1;
+            }
+            _slide(direction, activeItemIndex, targetItemIndex);
+        },
+        // функция для запуска автоматической смены слайдов в указанном направлении
+        _cycle = function () {
+            if (_config.isCycling) {
+                _interval = window.setInterval(function () {
+                    _slideTo(_config.direction);
+                }, _config.interval);
+            }
+        },
+        // обработка события click
+        _actionClick = function (e) {
+            var
+                activeItem = _slider.querySelector('.' + ClassName.ITEM_ACTIVE), // текущий элемент
+                activeItemIndex = _getItemIndex(activeItem), // индекс текущего элемента
+                targetItemIndex = e.target.getAttribute('data-slide-to');
+
+            if (!(e.target.hasAttribute('data-slide-to') || e.target.classList.contains('slider__control'))) {
+                return; // завершаем если клик пришёлся на не соответствующие элементы
+            }
+            if (e.target.hasAttribute('data-slide-to')) { // осуществляем переход на указанный сдайд 
+                if (activeItemIndex === targetItemIndex) {
+                    return;
                 }
-            });
-            return _index;
-        }
-
-        var position = {
-            getItemMin: function () {
-                var indexItem = 0;
-                _items.forEach(function (item, index) {
-                    if (item.position < _items[indexItem].position) {
-                        indexItem = index;
-                    }
+                _slide((targetItemIndex > activeItemIndex) ? 'next' : 'prev', activeItemIndex, targetItemIndex);
+            } else {
+                e.preventDefault();
+                _slideTo(e.target.classList.contains('slider__control_next') ? 'next' : 'prev');
+            }
+        },
+        // установка обработчиков событий
+        _setupListeners = function () {
+            // добавление к слайдеру обработчика события click
+            _slider.addEventListener('click', _actionClick);
+            // остановка автоматической смены слайдов (при нахождении курсора над слайдером)
+            if (_config.pause && _config.isCycling) {
+                _slider.addEventListener('mouseenter', function (e) {
+                    clearInterval(_interval);
                 });
-                return indexItem;
-            },
-            getItemMax: function () {
-                var indexItem = 0;
-                _items.forEach(function (item, index) {
-                    if (item.position > _items[indexItem].position) {
-                        indexItem = index;
-                    }
+                _slider.addEventListener('mouseleave', function (e) {
+                    clearInterval(_interval);
+                    _cycle();
                 });
-                return indexItem;
-            },
-            getMin: function () {
-                return _items[position.getItemMin()].position;
-            },
-            getMax: function () {
-                return _items[position.getItemMax()].position;
-            }
-        }
-
-        var _transformItem = function (direction) {
-            var nextItem;
-            if (!_isElementVisible(_mainElement)) {
-                return;
-            }
-            if (direction === 'right') {
-                _positionLeftItem++;
-                if ((_positionLeftItem + _wrapperWidth / _itemWidth - 1) > position.getMax()) {
-                    nextItem = position.getItemMin();
-                    _items[nextItem].position = position.getMax() + 1;
-                    _items[nextItem].transform += _items.length * 100;
-                    _items[nextItem].item.style.transform = 'translateX(' + _items[nextItem].transform + '%)';
-                }
-                _transform -= _step;
-            }
-            if (direction === 'left') {
-                _positionLeftItem--;
-                if (_positionLeftItem < position.getMin()) {
-                    nextItem = position.getItemMax();
-                    _items[nextItem].position = position.getMin() - 1;
-                    _items[nextItem].transform -= _items.length * 100;
-                    _items[nextItem].item.style.transform = 'translateX(' + _items[nextItem].transform + '%)';
-                }
-                _transform += _step;
-            }
-            _sliderWrapper.style.transform = 'translateX(' + _transform + '%)';
-        }
-
-        var _cycle = function (direction) {
-            if (!_config.isCycling) {
-                return;
-            }
-            _interval = setInterval(function () {
-                _transformItem(direction);
-            }, _config.interval);
-        }
-
-        // обработчик события click для кнопок "назад" и "вперед"
-        var _controlClick = function (e) {
-            e.preventDefault();
-            if (e.target.classList.contains('slider__control')) {
-                var direction = e.target.classList.contains('slider__control_right') ? 'right' : 'left';
-                _transformItem(direction);
-                clearInterval(_interval);
-                _cycle(_config.direction);
             }
         };
 
-        // обработка события изменения видимости страницы
-        var _handleVisibilityChange = function () {
-            if (document.visibilityState === "hidden") {
-                clearInterval(_interval);
-            } else {
-                clearInterval(_interval);
-                _cycle(_config.direction);
-            }
+    // init (инициализация слайдера)
+    for (var key in config) {
+        if (key in _config) {
+            _config[key] = config[key];
         }
-
-        var _refresh = function () {
-            clearInterval(_interval);
-            _mainElement.innerHTML = _html;
-            _sliderWrapper = _mainElement.querySelector('.slider__wrapper');
-            _sliderItems = _mainElement.querySelectorAll('.slider__item');
-            _sliderControls = _mainElement.querySelectorAll('.slider__control');
-            _sliderControlLeft = _mainElement.querySelector('.slider__control_left');
-            _sliderControlRight = _mainElement.querySelector('.slider__control_right');
-            _wrapperWidth = parseFloat(getComputedStyle(_sliderWrapper).width);
-            _itemWidth = parseFloat(getComputedStyle(_sliderItems[0]).width);
-            _positionLeftItem = 0;
-            _transform = 0;
-            _step = _itemWidth / _wrapperWidth * 100;
-            _items = [];
-            _sliderItems.forEach(function (item, index) {
-                _items.push({
-                    item: item,
-                    position: index,
-                    transform: 0
-                });
-            });
-        }
-
-        var _setUpListeners = function () {
-            _mainElement.addEventListener('click', _controlClick);
-            if (_config.pause && _config.isCycling) {
-                _mainElement.addEventListener('mouseenter', function () {
-                    clearInterval(_interval);
-                });
-                _mainElement.addEventListener('mouseleave', function () {
-                    clearInterval(_interval);
-                    _cycle(_config.direction);
-                });
-            }
-            document.addEventListener('visibilitychange', _handleVisibilityChange, false);
-            window.addEventListener('resize', function () {
-                var
-                    _index = 0,
-                    width = parseFloat(document.body.clientWidth);
-                _states.forEach(function (item, index, arr) {
-                    if (width >= _states[index].minWidth)
-                        _index = index;
-                });
-                if (_index !== _getActive()) {
-                    _setActive();
-                    _refresh();
-                }
-            });
-        }
-
-        // инициализация
-        _setUpListeners();
-        if (document.visibilityState === "visible") {
-            _cycle(_config.direction);
-        }
-        _setActive();
-
-        return {
-            right: function () { // метод right
-                _transformItem('right');
-            },
-            left: function () { // метод left
-                _transformItem('left');
-            },
-            stop: function () { // метод stop
-                _config.isCycling = false;
-                clearInterval(_interval);
-            },
-            cycle: function () { // метод cycle 
-                _config.isCycling = true;
-                clearInterval(_interval);
-                _cycle();
-            }
-        }
-
     }
-}());
+    _slider = (typeof _config.selector === 'string' ? document.querySelector(_config.selector) : _config.selector);
+    _items = _slider.querySelectorAll('.' + ClassName.ITEM);
+    _sliderIndicators = _slider.querySelectorAll('[data-slide-to]');
+    // запуск функции cycle
+    _cycle();
+    _setupListeners();
 
-var slider = multiItemSlider('.slider', {
-    isCycling: true
-})
+    return {
+        next: function () { // метод next 
+            _slideTo('next');
+        },
+        prev: function () { // метод prev 
+            _slideTo('prev');
+        },
+        stop: function () { // метод stop
+            clearInterval(_interval);
+        },
+        cycle: function () { // метод cycle 
+            clearInterval(_interval);
+            _cycle();
+        }
+    }
+}({
+    selector: '.slider',
+    isCycling: true,
+    direction: 'next',
+    interval: 5000,
+    pause: true
+}));

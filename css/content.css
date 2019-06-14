@@ -11,12 +11,6 @@
     cursor: pointer;
 }
 
-.content__item_image{
-    display: block;
-    width: 100%;
-    height: auto;
-}  
-
 .content__item_text{
     position: absolute;
     bottom: 10px;
